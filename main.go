@@ -10,28 +10,56 @@ func init(){
 }
 
 func main() {
-
-	var P person
-	P.name = "Xiang"
-	P.age = 20
-	//fmt.Printf("He is %s", P.name)
 	var names = [6]string {
 		"aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff",
 	}
 	var ages = [6]int {22, 23, 24, 25, 26, 27}
-	var my_persons [][2]person
+	//p := person{
+	//	name:      "test",
+	//	age:       10,
+	//	fav_color: RED,
+	//}
+	//p.Grow()
+	//s := student{
+	//	person:     p,
+	//	student_id: "none",
+	//}
+	//s.Grow()
+	var my_persons [][2] human
 	for i, n := range names{
+
+		p := person{
+			name:      n,
+			age:       ages[i],
+			fav_color: get_color(rand.Intn(10)),
+		}
 		if i%2 == 0{
 			my_persons = append(
 				my_persons,
-				[2]person {{n, ages[i], get_color(rand.Intn(6))}})
+				[2]human{&p})
 		}else{
-			my_persons[len(my_persons)-1][1] = person{n, ages[i], get_color(rand.Intn(6))}
+			my_persons[len(my_persons)-1][1] = &p
 		}
 	}
-	fmt.Println(my_persons)
+	my_persons = append(
+		my_persons,
+		[2]human{
+			&student{person{
+				name:      "gggg",
+				age:       28,
+				fav_color: RED,
+			}, "std1"},
+			&student{person{
+				name:      "hhhh",
+				age:       29,
+				fav_color: BLUE,
+			}, "std2"},
+		})
+	//fmt.Println(my_persons)
 	f := filter(my_persons, Older)
-	fmt.Println(f)
+	for _, p := range f{
+		fmt.Println(p.Get_age())
+	}
 }
 
 
@@ -41,7 +69,6 @@ const(
 	RED
 	YELLOW
 	BLACK
-	LENTH
 )
 
 func get_color (num int) (rcolor Color){
@@ -50,6 +77,7 @@ func get_color (num int) (rcolor Color){
 	defer func() {
 		if x := recover(); x != nil{
 			fmt.Println(x)
+			fmt.Println("AAAAAAAA")
 			rcolor = BLACK
 		}
 	}()
@@ -58,22 +86,39 @@ func get_color (num int) (rcolor Color){
 }
 
 type Color byte
-type age_compare func(p1, p2 person) person
+type age_compare func(p1, p2 human) human
 type person struct {
 	name string
 	age int
 	fav_color Color
 }
+type student struct {
+	person
+	student_id string
+}
 
-func Older(p1, p2 person) person {
-	if p1.age>p2.age {
+func (p *person) Grow(){
+	p.age += 1
+}
+func (p *person) Get_age() (age int){
+	age = p.age
+	return
+}
+
+type human interface {
+	Grow()
+	Get_age() int
+}
+
+func Older(p1, p2 human) human{
+	if p1.Get_age()>p2.Get_age() {
 		return p1
 	}
 	return p2
 }
 
-func filter(persons [][2]person, f age_compare) []person{
-	var result []person
+func filter(persons [][2]human, f age_compare) []human{
+	var result []human
 	for _, group := range persons{
 		result = append(result, f(group[0], group[1]))
 	}
