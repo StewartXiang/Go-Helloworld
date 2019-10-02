@@ -1,4 +1,4 @@
-package helloworld
+package main
 
 import (
 	"math/rand"
@@ -10,8 +10,6 @@ func init(){
 }
 
 func main() {
-
-
 
 	var P person
 	P.name = "Xiang"
