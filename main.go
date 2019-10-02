@@ -1,28 +1,16 @@
 package helloworld
 
-import "fmt"
+import (
+	"math/rand"
+	"fmt"
+	"time"
+)
+func init(){
+	rand.Seed(time.Now().UnixNano())
+}
 
 func main() {
-//	var i string
-//	i = "hello"
-//	i = i + "yes"
-//	const Pi float32 = 3.1415926
-//	var fslice = []int {1, 2, 3}
-//	slice := []byte {'a', 'b', 'c', 'd'}
-//	//var ar = [10]byte {'a', 'b', 'c'}
-//	fmt.Printf("Hello, world!\n")
-//	fmt.Printf(i+"\n")
-//	fmt.Printf("%f", Pi)
-//	fmt.Printf("%d, %s\n", fslice, slice)
-//	fmt.Println(cap(slice))
-//	var nslice = append(slice, 'e')
-//	fmt.Println(nslice, len(nslice))
-//	fmt.Println(cap(nslice))
-//Here:
-//	var nnslice = nslice[0:3]
-//	fmt.Println(len(nnslice))
-//	fmt.Println(cap(nnslice), nnslice[:4])
-//	goto Here
+
 
 
 	var P person
@@ -37,9 +25,10 @@ func main() {
 	for i, n := range names{
 		if i%2 == 0{
 			my_persons = append(
-				my_persons, [2]person {{n, ages[i]}, })
+				my_persons,
+				[2]person {{n, ages[i], get_color(rand.Intn(6))}})
 		}else{
-			my_persons[len(my_persons)-1][1] = person{n, ages[i]}
+			my_persons[len(my_persons)-1][1] = person{n, ages[i], get_color(rand.Intn(6))}
 		}
 	}
 	fmt.Println(my_persons)
@@ -47,10 +36,35 @@ func main() {
 	fmt.Println(f)
 }
 
+
+const(
+	WHITE = iota
+	BLUE
+	RED
+	YELLOW
+	BLACK
+	LENTH
+)
+
+func get_color (num int) (rcolor Color){
+	colors := []Color {WHITE, BLUE, RED, YELLOW, BLACK}
+
+	defer func() {
+		if x := recover(); x != nil{
+			fmt.Println(x)
+			rcolor = BLACK
+		}
+	}()
+	rcolor = colors[num]
+	return
+}
+
+type Color byte
 type age_compare func(p1, p2 person) person
 type person struct {
 	name string
 	age int
+	fav_color Color
 }
 
 func Older(p1, p2 person) person {
