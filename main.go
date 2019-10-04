@@ -148,13 +148,20 @@ func prepare_group_async(c chan [4]human) {
 }
 
 func get_group_async(c chan [4]human, ps [][4]human){
-	for {
-		if p, ok := <-c; ok{
-			fmt.Printf("get\n")
-			ps = append(ps, p)
-		} else {
-			break
-		}
+	//这里就可以
+	//for {
+	//	if p, ok := <-c; ok{
+	//		fmt.Printf("get\n")
+	//		ps = append(ps, p)
+	//	} else {
+	//		break
+	//	}
+	//}
+	//这里就不行
+	for _ = range c{
+		fmt.Printf("get\n")
+		p := <- c
+		ps = append(ps, p)
 	}
 	fmt.Println(ps)
 	f := filter(ps, Older)
