@@ -11,9 +11,10 @@ func init(){
 
 func main() {
 	//fmt.Println(my_persons)
-	var my_persons [][2]human
-	c := make(chan ([2]human), 0)
+	var my_persons [][4]human
+	c := make(chan ([4]human), 0)
 	go prepare_group_async(c)
+
 	get_group_async(c, my_persons)
 
 }
@@ -60,14 +61,20 @@ func (p *person) Get_age() (age int){
 	age = p.age
 	return
 }
+func (p *person) Get_name() (name string){
+	name = p.name
+	return
+}
 
 type human interface {
 	Grow()
 	Get_age() int
+	Get_name() string
 }
 
 func Older(p1, p2 human) human{
-	if p1.Get_age()>p2.Get_age() {
+	println("compare: ", p2.Get_age(), p1.Get_age())
+	if p2.Get_age() < p1.Get_age() {
 		return p1
 	}
 	return p2
@@ -110,7 +117,7 @@ func maker() (my_persons [][2]human){
 	return my_persons
 }
 
-func prepare_group_async(c chan [2]human) {
+func prepare_group_async(c chan [4]human) {
 	var names = [6]string {
 		"aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff",
 	}
@@ -120,7 +127,7 @@ func prepare_group_async(c chan [2]human) {
 	var ages = [6]int {22, 23, 24, 25, 26, 27}
 	var ages2 = [6]int {222, 232, 242, 252, 262, 272}
 	for i, n := range names{
-		var ps [2]human
+		var ps [4]human
 		p := person{
 			name:      n,
 			age:       ages[i],
@@ -131,28 +138,30 @@ func prepare_group_async(c chan [2]human) {
 			age:       ages2[i],
 			fav_color: get_color(rand.Intn(10)),
 		}
-		ps = [2]human{&p, &p2}
+		ps = [4]human{&p, &p2}
 		fmt.Printf("prepare %d\n", i)
 		c <- ps
+		fmt.Printf("insert over %d\n", i)
+		//fmt.Println(ps[0].Get_name())
 	}
 	close(c)
 }
 
-func get_group_async(c chan [2]human, ps [][2]human){
-	for _ = range c {
-		fmt.Printf("get\n")
-		//var p [2]human
-		p := <- c
-		fmt.Println(p[0].Get_age())
-		fmt.Println(p[1].Get_age())
-		//var my_p [2]human
-		//copy(my_p, p)
-		ps = append(ps, p)
-
+func get_group_async(c chan [4]human, ps [][4]human){
+	for {
+		if p, ok := <-c; ok{
+			fmt.Printf("get\n")
+			ps = append(ps, p)
+		} else {
+			break
+		}
 	}
 	fmt.Println(ps)
 	f := filter(ps, Older)
-	fmt.Println(f)
+	//fmt.Println(f)
+	for _, p := range f{
+		fmt.Println("final", p.Get_age(), p.Get_name())
+	}
 	//for _, p := range f{
 	//	fmt.Println(p.Get_age())
 	//	p.Grow()
@@ -160,7 +169,7 @@ func get_group_async(c chan [2]human, ps [][2]human){
 	//}
 }
 
-func filter(persons [][2]human, f age_compare) []human{
+func filter(persons [][4]human, f age_compare) []human{
 	var result []human
 	for _, group := range persons{
 		if value, ok := group[0].(*person); ok {
