@@ -120,6 +120,11 @@ func Older(p1, p2 human) human{
 func filter(persons [][2]human, f age_compare) []human{
 	var result []human
 	for _, group := range persons{
+		if value, ok := group[0].(*person); ok {
+			fmt.Printf("He is a person: %s\n", value.name)
+		} else {
+			fmt.Printf("He is a student\n")
+		}
 		result = append(result, f(group[0], group[1]))
 	}
 	return result
