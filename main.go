@@ -10,56 +10,12 @@ func init(){
 }
 
 func main() {
-	var names = [6]string {
-		"aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff",
-	}
-	var ages = [6]int {22, 23, 24, 25, 26, 27}
-	//p := person{
-	//	name:      "test",
-	//	age:       10,
-	//	fav_color: RED,
-	//}
-	//p.Grow()
-	//s := student{
-	//	person:     p,
-	//	student_id: "none",
-	//}
-	//s.Grow()
-	var my_persons [][2] human
-	for i, n := range names{
-
-		p := person{
-			name:      n,
-			age:       ages[i],
-			fav_color: get_color(rand.Intn(10)),
-		}
-		if i%2 == 0{
-			my_persons = append(
-				my_persons,
-				[2]human{&p})
-		}else{
-			my_persons[len(my_persons)-1][1] = &p
-		}
-	}
-	my_persons = append(
-		my_persons,
-		[2]human{
-			&student{person{
-				name:      "gggg",
-				age:       28,
-				fav_color: RED,
-			}, "std1"},
-			&student{person{
-				name:      "hhhh",
-				age:       29,
-				fav_color: BLUE,
-			}, "std2"},
-		})
 	//fmt.Println(my_persons)
-	f := filter(my_persons, Older)
-	for _, p := range f{
-		fmt.Println(p.Get_age())
-	}
+	var my_persons [][2]human
+	c := make(chan ([2]human), 0)
+	go prepare_group_async(c)
+	get_group_async(c, my_persons)
+
 }
 
 
@@ -76,8 +32,8 @@ func get_color (num int) (rcolor Color){
 
 	defer func() {
 		if x := recover(); x != nil{
-			fmt.Println(x)
-			fmt.Println("AAAAAAAA")
+			//fmt.Println(x)
+			//fmt.Println("AAAAAAAA")
 			rcolor = BLACK
 		}
 	}()
@@ -117,6 +73,93 @@ func Older(p1, p2 human) human{
 	return p2
 }
 
+func maker() (my_persons [][2]human){
+	var names = [6]string {
+		"aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff",
+	}
+	var ages = [6]int {22, 23, 24, 25, 26, 27}
+	for i, n := range names{
+
+		p := person{
+			name:      n,
+			age:       ages[i],
+			fav_color: get_color(rand.Intn(10)),
+		}
+		if i%2 == 0{
+			my_persons = append(
+				my_persons,
+				[2]human{&p})
+		}else{
+			my_persons[len(my_persons)-1][1] = &p
+		}
+	}
+	my_persons = append(
+		my_persons,
+		[2]human{
+			&student{person{
+				name:      "gggg",
+				age:       28,
+				fav_color: RED,
+			}, "std1"},
+			&student{person{
+				name:      "hhhh",
+				age:       29,
+				fav_color: BLUE,
+			}, "std2"},
+		})
+	return my_persons
+}
+
+func prepare_group_async(c chan [2]human) {
+	var names = [6]string {
+		"aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff",
+	}
+	var names2 = [6]string {
+		"aaaa2", "bbbb2", "cccc2", "dddd2", "eeee2", "ffff2",
+	}
+	var ages = [6]int {22, 23, 24, 25, 26, 27}
+	var ages2 = [6]int {222, 232, 242, 252, 262, 272}
+	for i, n := range names{
+		var ps [2]human
+		p := person{
+			name:      n,
+			age:       ages[i],
+			fav_color: get_color(rand.Intn(10)),
+		}
+		p2 := person{
+			name:      names2[i],
+			age:       ages2[i],
+			fav_color: get_color(rand.Intn(10)),
+		}
+		ps = [2]human{&p, &p2}
+		fmt.Printf("prepare %d\n", i)
+		c <- ps
+	}
+	close(c)
+}
+
+func get_group_async(c chan [2]human, ps [][2]human){
+	for _ = range c {
+		fmt.Printf("get\n")
+		//var p [2]human
+		p := <- c
+		fmt.Println(p[0].Get_age())
+		fmt.Println(p[1].Get_age())
+		//var my_p [2]human
+		//copy(my_p, p)
+		ps = append(ps, p)
+
+	}
+	fmt.Println(ps)
+	f := filter(ps, Older)
+	fmt.Println(f)
+	//for _, p := range f{
+	//	fmt.Println(p.Get_age())
+	//	p.Grow()
+	//	fmt.Println(p.Get_age())
+	//}
+}
+
 func filter(persons [][2]human, f age_compare) []human{
 	var result []human
 	for _, group := range persons{
@@ -129,3 +172,4 @@ func filter(persons [][2]human, f age_compare) []human{
 	}
 	return result
 }
+
