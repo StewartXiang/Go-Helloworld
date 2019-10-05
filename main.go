@@ -157,12 +157,15 @@ func get_group_async(c chan [4]human, ps [][4]human){
 	//		break
 	//	}
 	//}
-	//这里就不行
-	for _ = range c{
-		fmt.Printf("get\n")
-		p := <- c
+	//这里现在可以了
+	for p := range c{
+		fmt.Println(p)
+		fmt.Printf("get %s\n", p[0].Get_name())
+		//p := <- c
 		ps = append(ps, p)
 	}
+
+
 	fmt.Println(ps)
 	f := filter(ps, Older)
 	//fmt.Println(f)
