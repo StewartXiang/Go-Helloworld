@@ -10,13 +10,22 @@ func init(){
 }
 
 func main() {
+}
+
+func basic_main() {
 	//fmt.Println(my_persons)
 	var my_persons [][4]human
 	c := make(chan ([4]human), 0)
+	//exit := make(chan int)
 	go prepare_group_async(c)
-
 	get_group_async(c, my_persons)
+	select {
+	case i := <- c:
+		fmt.Println("detecting inserting")
+		fmt.Println(i)
+		//case
 
+	}
 }
 
 
