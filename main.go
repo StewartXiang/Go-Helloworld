@@ -1,70 +1,61 @@
 package main
 
 import (
-	"crypto/sha256"
+	"encoding/xml"
 	"fmt"
-	"html/template"
-	"io"
-	"log"
-	"net/http"
-	"strings"
 )
 
-func sayHelloName(w http.ResponseWriter, r *http.Request){
-	_ = r.ParseForm()
-	fmt.Println(r.Form)
-	fmt.Println("path", r.URL.Path)
-	fmt.Println("scheme", r.URL.Scheme)
-	fmt.Println(r.Form["url_long"])
-	for k,v := range r.Form{
-		fmt.Println("key:", k)
-		fmt.Println("val:", strings.Join(v, ""))
+func main()  {
+	a := JsonMessage{
+		CDATA{"wer<werw>"},
+		1000,
+		"ffd",
 	}
-	_, _ = fmt.Fprintf(w, "Hello astaxie!")
+	a2 := JsonMessage2{
+		"wer<werwer>",
+		1000,
+		"ffd",
+	}
+	aByte, _ := xml.Marshal(a)
+	aStr := string(aByte)
+	fmt.Printf("a1: %s\n", aStr)
+	a2Byte, _ := xml.Marshal(a2)
+	a2Str := string(a2Byte)
+	fmt.Printf("a2: %s\n", a2Str)
+
+	bStr := `
+<JsonMessage><my_name><![CDATA[wer<werw>]]></my_name><address>1000</address><phone>ffd</phone></JsonMessage>
+`
+	var b JsonMessage
+	err := xml.Unmarshal([]byte(bStr), &b)
+	fmt.Println(bStr)
+	//<JsonMessage>
+	//		<my_name>
+	//			<![CDATA[wer<werw>]]>
+	//		</my_name>
+	//		<address>1000</address><phone>ffd</phone>
+	//</JsonMessage>
+	fmt.Println(b.Name)
+	// 返回{wer<werw>}
+	fmt.Println(b.Name.Text)
+	// 返回wer<werw>
+	fmt.Println(err)
 }
 
-func login(w http.ResponseWriter, r *http.Request){
-	fmt.Println("method", r.Method)
-	if r.Method == "GET"{
-		t, _ := template.ParseFiles("login.gtpl")
-		log.Println(t.Execute(w, nil))
-	} else {
-		_ = r.ParseForm()
-		if len(r.Form["username"][0]) == 0{
-			fmt.Println("No Name!")
-		}
-		fmt.Println("username:", r.Form["username"])
-		fmt.Println("password:", r.Form["password"])
-	}
+type JsonMessage struct {
+	Name CDATA `xml:"my_name"`
+	Address int `xml:"address"`
+	Phone string `xml:"phone"`
 }
 
-func register(w http.ResponseWriter, r *http.Request){
-	if r.Method == "GET"{
-		t, _ := template.ParseFiles("register.gtpl")
-		log.Println(t.Execute(w, nil))
-	} else {
-		_ = r.ParseForm()
-		if len(r.Form["username"][0]) == 0{
-			fmt.Println("No Name!")
-		} else if r.Form["password"][0] != r.Form["password_again"][0]{
-			fmt.Println("No Confirm")
-		} else {
-			h := sha256.New()
-			fmt.Println(r.Form["password"][0])
-			_, _ = io.WriteString(h, r.Form["password"][0])
-			fmt.Printf("%x", h.Sum(nil))
-		}
-	}
+type CDATA struct {
+	Text string `xml:",cdata"`
 }
 
-func main(){
-	http.HandleFunc("/", sayHelloName)
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/register", register)
-	err := http.ListenAndServe(":9090", nil)
-	if err != nil{
 
-		log.Fatal("ListenAndServe:", err)
-
-	}
+type JsonMessage2 struct {
+	Name string `xml:"my_name>,cdata"`
+	Address int `xml:"address"`
+	Phone string `xml:"phone"`
 }
+
