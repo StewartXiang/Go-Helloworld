@@ -1,49 +1,28 @@
 package main
 
 import (
-	"encoding/xml"
 	"fmt"
+	"time"
 )
 
 func main()  {
-	a := XMLMessage{
-		"sdf<sdf>",
-		1000,
-		"ffd",
+	go spiderLauncher(aSpider, 0)
+	time.Sleep(60 * time.Second)
+
+}
+func aSpider(n int){
+	fmt.Printf("begin spider of %d \n", n)
+	time.Sleep(time.Second*3)
+	fmt.Printf("finish spider of %d \n", n)
+}
+
+func spiderLauncher(spider func(int), n int){
+	go spider(n)
+	timer := time.NewTicker(1 * time.Second)
+	select {
+	case <- timer.C:
+		fmt.Println("after 1s, begin new spider")
+		n += 1
+		go spiderLauncher(spider, n)
 	}
-	aByte, _ := xml.Marshal(a)
-	aStr := string(aByte)
-	fmt.Printf("a1: %s\n", aStr)
-
-	bStr := `
-<XMLMessage><my_name><![CDATA[wer<werw>]]></my_name><address>1000</address><phone>ffd</phone></XMLMessage>
-`
-	var b XMLMessage
-	err := xml.Unmarshal([]byte(bStr), &b)
-	fmt.Println(b.Name)
-	// wer<werwer>
-	fmt.Println(err)
 }
-
-//这才可以
-type XMLMessage struct {
-	Name CDATA `xml:"my_name"`
-	Address int `xml:"address"`
-	Phone string `xml:"phone"`
-}
-type CDATA string
-func (n CDATA) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return e.EncodeElement(struct{
-		S string `xml:",innerxml"`
-	}{
-		S: "<![CDATA[" + string(n) + "]]>",
-	}, start)
-}
-
-// 这种不行
-type JsonMessage2 struct {
-	Name string `xml:"my_name>,cdata"`
-	Address int `xml:"address"`
-	Phone string `xml:"phone"`
-}
-
