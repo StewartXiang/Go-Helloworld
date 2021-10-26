@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 )
-
+//啦啦啦啦啦
 func main()  {
 	exit := make(chan int)
 	go spiderLauncher(aSpider, 0, exit)
